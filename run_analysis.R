@@ -1,3 +1,5 @@
+
+#Loading the data into variables
 trainData <-read.csv("FUCI Har Dataset/train/X_train.txt", sep = "", header = F)
 testData <- read.csv("FUCI Har Dataset/test/X_test.txt", sep = "", header = F)
 trainActivities <- read.csv("FUCI Har Dataset/train/Y_train.txt", sep = "\t", header = F)
@@ -14,6 +16,8 @@ trainSubjects <- read.csv("FUCI Har Dataset/train/subject_train.txt", sep = "",
                          header = F, col.names = c("SubjectId"))
 
 library(dplyr)
+library(reshape2)
+
 
 #merge all the activities
 allActivities <- rbind(trainActivities, testActivities)
@@ -46,9 +50,14 @@ names(meanOrStdAllDataWithActivity) <-
             names(meanOrStdAllDataWithActivity),perl = T)
 
 #5: Summarising the data. i.e. finding the means of all the columns..
-summarisedData <-  meanOrStdAllDataWithActivity %>%
-                        group_by(SubjectId, activityLabelName) %>%
-                            summarise_each(funs(mean(., na.rm = T)))
+
+
+meltedData <-  melt(data = meanOrStdAllDataWithActivity, 
+                            c("SubjectId", "activityLabelName"))
+
+summarisedData <- dcast(meltedData, SubjectId + activityLabelName ~ variable, mean)
+
+head(summarisedData)
 
 write.table(summarisedData, 'summary.txt', row.name=FALSE)
 
